@@ -50,6 +50,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.finalproject.ui.theme.FinalProjectTheme
 
 class MainActivity : ComponentActivity() {
@@ -62,16 +66,42 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppScaffold()
+                    val navController = rememberNavController()
+                    AppScaffold(navController = navController)
                 }
             }
         }
     }
 }
 
+// Navigation Stuff
+@Composable
+fun MyAppNavHost(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    startDestination: String = "home"
+) {
+    NavHost(navController = navController, startDestination = startDestination){
+        composable("profile") { Profile() }
+        composable("search") { Search() }
+        composable("home") { AllGames() }
+        composable("categories") { Categories() }
+        composable("favorites") { Favorites() }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppScaffold() {
+fun AppScaffold(navController: NavHostController) {
+    val currentRoute = rememberNavController()
+        .currentDestination?.route ?: "home"
+    val title = when (currentRoute) {
+        "profile" -> "🎮Free2Play - Profile"
+        "search" -> "🎮Free2Play - Search"
+        "categories" -> "🎮Free2Play - Categories"
+        "favorites" -> "🎮Free2Play - Favorites"
+        else -> "🎮Free2Play"
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -80,16 +110,16 @@ fun AppScaffold() {
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text("🎮 Free2Play")
+                    Text(title)
                 },
                 actions = {
-                    IconButton(onClick = { /* TO DO: Integrate Profile*/ }) {
+                    IconButton(onClick = { navController.navigate("profile")}) {
                         Icon(
                             imageVector = Icons.Filled.Person,
                             contentDescription = "Profile navigation item."
                         )
                     }
-                    IconButton(onClick = { /* TO DO: Integrate Search */ }) {
+                    IconButton(onClick = { navController.navigate("search")  }) {
                         Icon(
                             imageVector = Icons.Filled.Search,
                             contentDescription = "Search navigation item."
@@ -104,22 +134,22 @@ fun AppScaffold() {
                 contentColor = MaterialTheme.colorScheme.primary,
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(), // Fill the width of the BottomAppBar
-                    horizontalArrangement = Arrangement.SpaceBetween // Space items evenly
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(modifier = Modifier.weight(1f), onClick = { /* Integrate Categories */ }) {
+                    IconButton(modifier = Modifier.weight(1f), onClick = { navController.navigate("categories") }) {
                         Icon(
                             imageVector = Icons.Filled.List,
                             contentDescription = "Categories navigation item."
                         )
                     }
-                    IconButton(modifier = Modifier.weight(1f), onClick = { /* Integrate All Games (Home Page) */ }) {
+                    IconButton(modifier = Modifier.weight(1f), onClick = { navController.navigate("home") }) {
                         Icon(
                             imageVector = Icons.Filled.Home,
                             contentDescription = "Home/all games navigation item."
                         )
                     }
-                    IconButton(modifier = Modifier.weight(1f), onClick = { /* Integrate Saved Games Page */ }) {
+                    IconButton(modifier = Modifier.weight(1f), onClick = { navController.navigate("favorites") }) {
                         Icon(
                             imageVector = Icons.Filled.Favorite,
                             contentDescription = "Saved games navigation item."
@@ -133,16 +163,11 @@ fun AppScaffold() {
             modifier = Modifier
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            LazyColumn {
-                item{
-                    // GameListEntry Composable to go here.
-                    GameListEntry()
-                    GameListEntry()
-                    GameListEntry()
-                    GameListEntry()
-                }
-            }
+        ){
+            MyAppNavHost(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController
+            )
         }
     }
 }
@@ -197,10 +222,54 @@ fun GameListEntry(/* To add Game object in parameters */ modifier: Modifier = Mo
     }
 }
 
+// Screen where users can view favorite games.
+@Composable
+fun Favorites() {
+    Text(text="Favorites")
+}
+
+// Screen where users can view game categories.
+@Composable
+fun Categories() {
+    Text(text="Categories")
+}
+
+// Screen where users can search for games.
+@Composable
+fun Search() {
+    Text(text="Search")
+}
+
+// Screen where users can view their profile.
+@Composable
+fun Profile() {
+    Text(text="Profiles")
+}
+
+// Screen where users can view a specific games' details.
+@Composable
+fun GameDetails() {
+    Text(text="Game Details")
+}
+
+// Home Screen, this is where all games are displayed.
+@Composable
+fun AllGames() {
+    LazyColumn {
+        item{
+            // GameListEntry Composable to go here.
+            GameListEntry()
+            GameListEntry()
+            GameListEntry()
+            GameListEntry()
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     FinalProjectTheme {
-        AppScaffold()
+
     }
 }
