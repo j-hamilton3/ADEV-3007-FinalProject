@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.finalproject.ui.theme.FinalProjectTheme
 
@@ -61,7 +63,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             FinalProjectTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -93,14 +94,19 @@ fun MyAppNavHost(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScaffold(navController: NavHostController) {
-    val currentRoute = rememberNavController()
-        .currentDestination?.route ?: "home"
-    val title = when (currentRoute) {
-        "profile" -> "🎮Free2Play - Profile"
-        "search" -> "🎮Free2Play - Search"
-        "categories" -> "🎮Free2Play - Categories"
-        "favorites" -> "🎮Free2Play - Favorites"
-        else -> "🎮Free2Play"
+    val currentDestination = navController.currentBackStackEntryAsState()
+    val currentRoute = currentDestination.value?.destination?.route ?: "home"
+    var title by remember { mutableStateOf("🎮Free2Play") }
+
+    // Update the title when currentRoute changes
+    LaunchedEffect(currentRoute) {
+        title = when (currentRoute) {
+            "profile" -> "🎮Free2Play - Profile"
+            "search" -> "🎮Free2Play - Search"
+            "categories" -> "🎮Free2Play - Categories"
+            "favorites" -> "🎮Free2Play - Favorites"
+            else -> "🎮Free2Play"
+        }
     }
     Scaffold(
         topBar = {
