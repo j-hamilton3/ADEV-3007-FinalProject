@@ -7,7 +7,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -235,10 +238,37 @@ fun Favorites() {
     Text(text="Favorites")
 }
 
-// Screen where users can view game categories.
+// Screen where users can view game categories. This will later accept a list of categories from the DB.
 @Composable
 fun Categories() {
-    Text(text="Categories")
+    val categories = listOf("Shooter", "RPG", "Horror", "MMORPG",
+        "Rogue-Like", "Open World", "Real Time Strategy", "Survival",
+        "Battle-Royale", "Simulation", "Racing", "Fighting") // This will later be accepted in the parameters of Categories()
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        items(categories) { category ->
+            CategoryItem(category = category)
+        }
+    }
+}
+
+// A category Item to be used in the Categories screen.
+@Composable
+fun CategoryItem(category: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = category, style = MaterialTheme.typography.bodyMedium)
+    }
 }
 
 // Screen where users can search for games.
