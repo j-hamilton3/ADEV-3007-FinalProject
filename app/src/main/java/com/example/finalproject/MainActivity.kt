@@ -9,14 +9,17 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -108,7 +111,7 @@ fun AppScaffold(navController: NavHostController) {
             "profile" -> "🎮Free2Play - Profile"
             "search" -> "🎮Free2Play - Search"
             "categories" -> "🎮Free2Play - Categories"
-            "favorites" -> "🎮Free2Play - Favorites"
+            "favorites" -> "🎮Free2Play - Favorites♥"
             else -> "🎮Free2Play"
         }
     }
@@ -235,7 +238,13 @@ fun GameListEntry(/* To add Game object in parameters */ modifier: Modifier = Mo
 // Screen where users can view favorite games.
 @Composable
 fun Favorites() {
-    Text(text="Favorites")
+    LazyColumn {
+        item{
+            // GameListEntry Composable to go here.
+            GameListEntry()
+            GameListEntry()
+        }
+    }
 }
 
 // Screen where users can view game categories. This will later accept a list of categories from the DB.
@@ -299,8 +308,52 @@ fun Search(modifier: Modifier = Modifier) {
 // Screen where users can view their profile.
 @Composable
 fun Profile() {
-    Text(text="Profiles")
+    // Fake user data - we will accept this data from external sources later.
+    val fullName = "James Hamilton"
+    val email = "jhamilton3@rrc.ca"
+    val memberSince = "March 2024"
+    val favoriteGames = 2
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+            .padding(16.dp)
+            .width(IntrinsicSize.Max),
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Person,
+                contentDescription = "Profile Icon.",
+                modifier = Modifier.size(48.dp)
+            )
+            Text(
+                text = fullName,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = email,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Member since: $memberSince",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Favorite Games: $favoriteGames",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
 }
+
 
 // Screen where users can view a specific games' details.
 @Composable
@@ -326,6 +379,7 @@ fun AllGames() {
 @Composable
 fun GreetingPreview() {
     FinalProjectTheme {
-
+        val navController = rememberNavController()
+        AppScaffold(navController = navController)
     }
 }
