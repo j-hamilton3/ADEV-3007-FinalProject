@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
@@ -187,7 +188,7 @@ fun GameListEntry(/* To add Game object in parameters */ modifier: Modifier = Mo
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
             .padding(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally // This centers the content horizontally
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Call of Duty: Warzone",
@@ -242,8 +243,27 @@ fun Categories() {
 
 // Screen where users can search for games.
 @Composable
-fun Search() {
-    Text(text="Search")
+fun Search(modifier: Modifier = Modifier) {
+    var text by remember { mutableStateOf("") }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.Center
+    ){
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Search by Game Name:") }
+        )
+        IconButton(onClick = { /* TODO: Add Search function. */ }) {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = "Search button."
+            )
+        }
+    }
 }
 
 // Screen where users can view their profile.
