@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -92,9 +94,10 @@ fun MyAppNavHost(
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile() }
         composable("search") { Search() }
-        composable("home") { AllGames() }
+        composable("home") { AllGames(navController) }
         composable("categories") { Categories() }
-        composable("favorites") { Favorites() }
+        composable("favorites") { Favorites(navController) }
+        composable("gameDetails") { GameDetails()} // This should eventually route to a specific game in the DB with a gameID argument.
     }
 }
 
@@ -187,13 +190,14 @@ fun AppScaffold(navController: NavHostController) {
 
 // Using as a placeholder until we get actual data in.
 @Composable
-fun GameListEntry(/* To add Game object in parameters */ modifier: Modifier = Modifier) {
+fun GameListEntry(/* To add Game object in parameters */ navController: NavHostController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
-            .padding(4.dp),
+            .padding(4.dp)
+            .clickable { navController.navigate("gameDetails")}, // This will eventually route to the specific games ID.
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -237,12 +241,12 @@ fun GameListEntry(/* To add Game object in parameters */ modifier: Modifier = Mo
 
 // Screen where users can view favorite games.
 @Composable
-fun Favorites() {
+fun Favorites(navController: NavHostController) {
     LazyColumn {
         item{
             // GameListEntry Composable to go here.
-            GameListEntry()
-            GameListEntry()
+            GameListEntry(navController)
+            GameListEntry(navController)
         }
     }
 }
@@ -342,7 +346,7 @@ fun Profile() {
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Member since: $memberSince",
+                text = "Member Since: $memberSince",
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -354,23 +358,82 @@ fun Profile() {
     }
 }
 
-
 // Screen where users can view a specific games' details.
 @Composable
 fun GameDetails() {
-    Text(text="Game Details")
+    // Placeholder game details.
+    val title = "Call of Duty: Warzone"
+    val releaseDate = "2020-03-10"
+    val thumbnail = painterResource(id = R.drawable.thumbnail_example)
+    val platform = "Windows"
+    val genre = "Shooter"
+    val developer = "Infinity Ward"
+    val publisher = "Activision"
+    val description = "A standalone free-to-play battle royale and modes accessible via Call of Duty: Modern Warfare."
+    val url = "https://www.freetogame.com/call-of-duty-warzone"
+    val screenshots = listOf(
+        R.drawable.call_of_duty_warzone_1,
+        R.drawable.call_of_duty_warzone_2,
+        R.drawable.call_of_duty_warzone_3
+    )
+
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        LazyColumn(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
+            item {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Image(
+                    painter = thumbnail,
+                    contentDescription = "$title thumbnail",
+                    modifier = Modifier.size(300.dp)
+                )
+                Text(text = "Release Date: $releaseDate", modifier = Modifier.padding(bottom = 4.dp))
+                Text(text = "Platform: $platform", modifier = Modifier.padding(bottom = 4.dp))
+                Text(text = "Genre: $genre", modifier = Modifier.padding(bottom = 4.dp))
+                Text(text = "Developer: $developer", modifier = Modifier.padding(bottom = 4.dp))
+                Text(text = "Publisher: $publisher", modifier = Modifier.padding(bottom = 8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Description:", modifier = Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.headlineSmall)
+                Text(text = description, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Website Link:", modifier = Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.headlineSmall)
+                Text(text = url, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Screenshots:",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            items(screenshots) { imageRes ->
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = "Game Screenshot",
+                    modifier = Modifier
+                        .height(180.dp)
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+    }
 }
 
 // Home Screen, this is where all games are displayed.
 @Composable
-fun AllGames() {
+fun AllGames(navController: NavHostController) {
     LazyColumn {
         item{
             // GameListEntry Composable to go here.
-            GameListEntry()
-            GameListEntry()
-            GameListEntry()
-            GameListEntry()
+            GameListEntry(navController)
+            GameListEntry(navController)
+            GameListEntry(navController)
+            GameListEntry(navController)
         }
     }
 }
