@@ -3,6 +3,7 @@ package com.example.finalproject
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,8 +22,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -52,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -197,7 +203,7 @@ fun GameListEntry(/* To add Game object in parameters */ navController: NavHostC
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
             .padding(4.dp)
-            .clickable { navController.navigate("gameDetails")}, // This will eventually route to the specific games ID.
+            .clickable { navController.navigate("gameDetails") }, // This will eventually route to the specific games ID.
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -320,7 +326,8 @@ fun Profile() {
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(16.dp)
             .width(IntrinsicSize.Max),
     ) {
@@ -359,6 +366,7 @@ fun Profile() {
 }
 
 // Screen where users can view a specific games' details.
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GameDetails() {
     // Placeholder game details.
@@ -375,6 +383,10 @@ fun GameDetails() {
         R.drawable.call_of_duty_warzone_1,
         R.drawable.call_of_duty_warzone_2,
         R.drawable.call_of_duty_warzone_3
+    )
+    // To set up Pager count.
+    val pagerState = rememberPagerState(
+        pageCount = { screenshots.size}
     )
 
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -408,17 +420,43 @@ fun GameDetails() {
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-            }
-            items(screenshots) { imageRes ->
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = "Game Screenshot",
+
+                // HorizontalPager for displaying screenshots.
+                HorizontalPager(
+                    state = pagerState,
                     modifier = Modifier
-                        .height(180.dp)
+                        .height(190.dp)
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    contentScale = ContentScale.Crop
-                )
+                ) { page ->
+                    Image(
+                        painter = painterResource(id = screenshots[page]),
+                        contentDescription = "$title screenshot - $page",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                // The super cool circles, to show amount/place of screenshots.
+                Row(
+                    Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp, top = 10.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    repeat(pagerState.pageCount) { iteration ->
+                        val color = if (pagerState.currentPage == iteration) Color.Black else Color.LightGray
+                        Box(
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                                .size(14.dp)
+                        )
+                    }
+                }
             }
         }
     }
