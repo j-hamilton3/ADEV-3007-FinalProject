@@ -1,12 +1,13 @@
 package com.example.finalproject.network
 
+import com.example.finalproject.model.Game
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.http.GET
 
-private const val BASE_URL = "https://www.freetogame.com/api/games"
+private const val BASE_URL = "https://www.freetogame.com/api/"
 
 private val retrofit = Retrofit.Builder()
     .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
@@ -14,10 +15,8 @@ private val retrofit = Retrofit.Builder()
     .build()
 
 interface GameApiService {
-    @GET(BASE_URL)
-    suspend fun getGames(
-
-    ): String
+    @GET("games")
+    suspend fun getGames(): List<Game>
 }
 
 object GameAPI {

@@ -84,6 +84,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val gameViewModel: GameViewModel = GameViewModel()
                     val navController = rememberNavController()
                     AppScaffold(navController = navController)
                 }
