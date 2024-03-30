@@ -79,6 +79,9 @@ import com.example.finalproject.ui.theme.FinalProjectTheme
 import com.example.finalproject.ui.theme.GameUiState
 import com.example.finalproject.ui.theme.GameViewModel
 import coil.compose.rememberImagePainter
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,16 +122,13 @@ fun MyAppNavHost(
             // Retrieve the gameId from the backStackEntry arguments
             val gameId = backStackEntry.arguments?.getString("gameId")?.toIntOrNull()
 
-            // Assuming GameUiState.Success contains a list of games
             val game = if (gameUiState is GameUiState.Success) {
                 gameUiState.games.find { it.id == gameId }
             } else null
 
             if (game != null) {
-                // Display the game details
                 GameDetails(game = game)
             } else {
-                // Handle the case where the game is not found. This could display an error or a placeholder.
                 Text("Game not found")
             }
         }
@@ -424,11 +424,14 @@ fun GameDetails(game: Game) {
     val publisher = game.publisher
     val description = game.shortDescription
     val url = game.freetogameProfileUrl
-        val screenshots = listOf( // *** This will have to change, I am needing to query a specific Game, to grab these details?
-            R.drawable.call_of_duty_warzone_1,
-            R.drawable.call_of_duty_warzone_2,
-            R.drawable.call_of_duty_warzone_3
-        )
+
+    val context = LocalContext.current // Used for clickable URL functionality.
+
+    val screenshots = listOf( // *** This will have to change, I am needing to query a specific Game, to grab these details?
+        R.drawable.call_of_duty_warzone_1,
+        R.drawable.call_of_duty_warzone_2,
+        R.drawable.call_of_duty_warzone_3
+    )
     // To set up Pager count.
     val pagerState = rememberPagerState(
         pageCount = { screenshots.size}
@@ -457,7 +460,17 @@ fun GameDetails(game: Game) {
                 Text(text = description, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = "Website Link:", modifier = Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.headlineSmall)
-                Text(text = url, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text(
+                    text = url,
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .clickable {
+                            // Open URL in the browser
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(intent)
+                        },
+                    color = Color(0xFF0645AD)
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Screenshots:",
