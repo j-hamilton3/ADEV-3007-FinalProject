@@ -116,7 +116,7 @@ fun MyAppNavHost(
         composable("profile") { Profile() }
         composable("search") { Search() }
         composable("home") { AllGames(navController, gameUiState) }
-        composable("categories") { Categories() }
+        composable("categories") { Categories(gameUiState) }
         composable("favorites") { Favorites(navController, gameUiState) }
         composable("gameDetails/{gameId}") { backStackEntry ->
             // Retrieve the gameId from the backStackEntry arguments
@@ -302,12 +302,17 @@ fun Favorites(navController: NavHostController, gameUiState: GameUiState) {
     }
 }
 
-// Screen where users can view game categories. This will later accept a list of categories from the DB.
+// Screen where users can view game categories.
 @Composable
-fun Categories() {
-    val categories = listOf("Shooter", "RPG", "Horror", "MMORPG",
-        "Rogue-Like", "Open World", "Real Time Strategy", "Survival",
-        "Battle-Royale", "Simulation", "Racing", "Fighting") // This will later be accepted in the parameters of Categories()
+fun Categories(gameUiState: GameUiState) {
+
+    val categories = when (gameUiState) {
+        is GameUiState.Success -> {
+            // Extract the genre from each game and remove duplicates.
+            gameUiState.games.map { it.genre.trim() }.distinct().sorted()
+        }
+        else -> listOf<String>() // Return an empty list if not in Success state.
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
