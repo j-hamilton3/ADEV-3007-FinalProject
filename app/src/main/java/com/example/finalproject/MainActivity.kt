@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -72,10 +73,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.finalproject.model.Game
 import com.example.finalproject.network.GameAPI
 import com.example.finalproject.ui.theme.FinalProjectTheme
 import com.example.finalproject.ui.theme.GameUiState
 import com.example.finalproject.ui.theme.GameViewModel
+import coil.compose.rememberImagePainter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,11 +89,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val gameViewModel: GameViewModel = viewModel()
                     val navController = rememberNavController()
                     AppScaffold(
-                        navController = navController,
-                        gameUiState = gameViewModel.gameUiState
+                        navController = navController
                     )
                 }
             }
@@ -105,19 +106,38 @@ fun MyAppNavHost(
     navController: NavHostController,
     startDestination: String = "home"
 ) {
+    val gameViewModel: GameViewModel = viewModel()
+    val gameUiState = gameViewModel.gameUiState
+
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile() }
         composable("search") { Search() }
-        composable("home") { AllGames(navController) }
+        composable("home") { AllGames(navController, gameUiState) }
         composable("categories") { Categories() }
-        composable("favorites") { Favorites(navController) }
-        composable("gameDetails") { GameDetails()} // This should eventually route to a specific game in the DB with a gameID argument.
+        composable("favorites") { Favorites(navController, gameUiState) }
+        composable("gameDetails/{gameId}") { backStackEntry ->
+            // Retrieve the gameId from the backStackEntry arguments
+            val gameId = backStackEntry.arguments?.getString("gameId")?.toIntOrNull()
+
+            // Assuming GameUiState.Success contains a list of games
+            val game = if (gameUiState is GameUiState.Success) {
+                gameUiState.games.find { it.id == gameId }
+            } else null
+
+            if (game != null) {
+                // Display the game details
+                GameDetails(game = game)
+            } else {
+                // Handle the case where the game is not found. This could display an error or a placeholder.
+                Text("Game not found")
+            }
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppScaffold(navController: NavHostController, gameUiState: GameUiState) {
+fun AppScaffold(navController: NavHostController) {
     val currentDestination = navController.currentBackStackEntryAsState()
     val currentRoute = currentDestination.value?.destination?.route ?: "home"
     var title by remember { mutableStateOf("🎮Free2Play") }
@@ -204,18 +224,18 @@ fun AppScaffold(navController: NavHostController, gameUiState: GameUiState) {
 
 // Using as a placeholder until we get actual data in.
 @Composable
-fun GameListEntry(/* To add Game object in parameters */ navController: NavHostController, modifier: Modifier = Modifier) {
+fun GameListEntry(game : Game, navController: NavHostController, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
             .padding(4.dp)
-            .clickable { navController.navigate("gameDetails") }, // This will eventually route to the specific games ID.
+            .clickable { navController.navigate("gameDetails/${game.id}") }, // This will eventually route to the specific games ID.
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Call of Duty: Warzone",
+            text = game.title,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .padding(top = 8.dp, bottom = 1.dp),
@@ -227,8 +247,8 @@ fun GameListEntry(/* To add Game object in parameters */ navController: NavHostC
                 .height(150.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.thumbnail_example),
-                contentDescription = "Call of Duty Warzone title image.",
+                painter = rememberImagePainter(game.thumbnail),
+                contentDescription = "${game.title} thumbnail image.",
                 modifier = Modifier
                     .size(200.dp)
                     .padding(8.dp),
@@ -240,13 +260,13 @@ fun GameListEntry(/* To add Game object in parameters */ navController: NavHostC
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Genre: Shooter"
+                    text = game.genre
                 )
                 Text(
-                    text = "Platform: Windows"
+                    text = game.platform
                 )
                 Text(
-                    text = "Release: 2020"
+                    text = game.releaseDate
                 )
             }
         }
@@ -255,12 +275,27 @@ fun GameListEntry(/* To add Game object in parameters */ navController: NavHostC
 
 // Screen where users can view favorite games.
 @Composable
-fun Favorites(navController: NavHostController) {
-    LazyColumn {
-        item{
-            // GameListEntry Composable to go here.
-            GameListEntry(navController)
-            GameListEntry(navController)
+fun Favorites(navController: NavHostController, gameUiState: GameUiState) {
+    when (gameUiState) {
+        is GameUiState.Success -> {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                items(gameUiState.games) { game ->
+                    GameListEntry(game = game, navController = navController)
+                }
+            }
+        }
+        GameUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        GameUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Failed to load favorite games.")
+            }
         }
     }
 }
@@ -376,22 +411,22 @@ fun Profile() {
 // Screen where users can view a specific games' details.
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GameDetails() {
+fun GameDetails(game: Game) {
     // Placeholder game details.
-    val title = "Call of Duty: Warzone"
-    val releaseDate = "2020-03-10"
-    val thumbnail = painterResource(id = R.drawable.thumbnail_example)
-    val platform = "Windows"
-    val genre = "Shooter"
-    val developer = "Infinity Ward"
-    val publisher = "Activision"
-    val description = "A standalone free-to-play battle royale and modes accessible via Call of Duty: Modern Warfare."
-    val url = "https://www.freetogame.com/call-of-duty-warzone"
-    val screenshots = listOf(
-        R.drawable.call_of_duty_warzone_1,
-        R.drawable.call_of_duty_warzone_2,
-        R.drawable.call_of_duty_warzone_3
-    )
+    val title = game.title
+    val releaseDate = game.releaseDate
+    val thumbnail = rememberImagePainter(game.thumbnail)
+    val platform = game.platform
+    val genre = game.genre
+    val developer = game.developer
+    val publisher = game.publisher
+    val description = game.shortDescription
+    val url = game.freetogameProfileUrl
+        val screenshots = listOf( // *** This will have to change, I am needing to query a specific Game, to grab these details?
+            R.drawable.call_of_duty_warzone_1,
+            R.drawable.call_of_duty_warzone_2,
+            R.drawable.call_of_duty_warzone_3
+        )
     // To set up Pager count.
     val pagerState = rememberPagerState(
         pageCount = { screenshots.size}
@@ -472,14 +507,27 @@ fun GameDetails() {
 
 // Home Screen, this is where all games are displayed.
 @Composable
-fun AllGames(navController: NavHostController) {
-    LazyColumn {
-        item{
-            // GameListEntry Composable to go here.
-            GameListEntry(navController)
-            GameListEntry(navController)
-            GameListEntry(navController)
-            GameListEntry(navController)
+fun AllGames(navController: NavHostController, gameUiState: GameUiState) {
+    when (gameUiState) {
+        is GameUiState.Success -> {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                items(gameUiState.games) { game ->
+                    GameListEntry(game = game, navController = navController)
+                }
+            }
+        }
+        GameUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        GameUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Failed to load games.")
+            }
         }
     }
 }
