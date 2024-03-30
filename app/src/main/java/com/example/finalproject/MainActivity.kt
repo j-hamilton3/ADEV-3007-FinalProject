@@ -222,7 +222,6 @@ fun AppScaffold(navController: NavHostController) {
     }
 }
 
-// Using as a placeholder until we get actual data in.
 @Composable
 fun GameListEntry(game : Game, navController: NavHostController, modifier: Modifier = Modifier) {
     Column(
@@ -278,11 +277,14 @@ fun GameListEntry(game : Game, navController: NavHostController, modifier: Modif
 fun Favorites(navController: NavHostController, gameUiState: GameUiState) {
     when (gameUiState) {
         is GameUiState.Success -> {
+
+            val gamesToShow = gameUiState.games.takeLast(4) // Using as placeholder until favorite functionality.
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                items(gameUiState.games) { game ->
+                items(gamesToShow) { game ->
                     GameListEntry(game = game, navController = navController)
                 }
             }
