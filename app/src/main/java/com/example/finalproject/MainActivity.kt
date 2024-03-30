@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -73,6 +74,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.finalproject.network.GameAPI
 import com.example.finalproject.ui.theme.FinalProjectTheme
+import com.example.finalproject.ui.theme.GameUiState
 import com.example.finalproject.ui.theme.GameViewModel
 
 class MainActivity : ComponentActivity() {
@@ -84,9 +86,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val gameViewModel: GameViewModel = GameViewModel()
+                    val gameViewModel: GameViewModel = viewModel()
                     val navController = rememberNavController()
-                    AppScaffold(navController = navController)
+                    AppScaffold(
+                        navController = navController,
+                        gameUiState = gameViewModel.gameUiState
+                    )
                 }
             }
         }
@@ -112,7 +117,7 @@ fun MyAppNavHost(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppScaffold(navController: NavHostController) {
+fun AppScaffold(navController: NavHostController, gameUiState: GameUiState) {
     val currentDestination = navController.currentBackStackEntryAsState()
     val currentRoute = currentDestination.value?.destination?.route ?: "home"
     var title by remember { mutableStateOf("🎮Free2Play") }
@@ -479,11 +484,4 @@ fun AllGames(navController: NavHostController) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    FinalProjectTheme {
-        val navController = rememberNavController()
-        AppScaffold(navController = navController)
-    }
-}
+
