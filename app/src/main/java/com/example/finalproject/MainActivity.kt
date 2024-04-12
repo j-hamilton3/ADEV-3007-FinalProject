@@ -76,7 +76,10 @@ import com.example.finalproject.ui.theme.GameViewModel
 import coil.compose.rememberImagePainter
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.material3.Button
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.example.finalproject.ui.theme.SignInViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,7 +105,7 @@ class MainActivity : ComponentActivity() {
 fun MyAppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    startDestination: String = "home"
+    startDestination: String = "signInScreen"
 ) {
     val gameViewModel: GameViewModel = viewModel()
     val gameUiState = gameViewModel.gameUiState
@@ -127,6 +130,7 @@ fun MyAppNavHost(
                 Text("Game not found")
             }
         }
+        composable("signInScreen") { SignInScreen(signInViewModel = SignInViewModel()) }
     }
 }
 
@@ -543,6 +547,28 @@ fun AllGames(navController: NavHostController, gameUiState: GameUiState) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Failed to load games.")
             }
+        }
+    }
+}
+
+@Composable
+fun SignInScreen(signInViewModel: SignInViewModel) {
+    val uiState by signInViewModel.uiState
+
+    Column() {
+        TextField(
+            value = uiState.email,
+            onValueChange = { emailValue -> signInViewModel.updateEmailState(emailValue)}
+        )
+        TextField(
+            value = uiState.password,
+            onValueChange = { passwordValue -> signInViewModel.updatePasswordState(passwordValue)},
+            visualTransformation = PasswordVisualTransformation()
+        )
+        Button(
+            onClick = { /* TODO */ }
+        ) {
+            Text(text = "Register")
         }
     }
 }
