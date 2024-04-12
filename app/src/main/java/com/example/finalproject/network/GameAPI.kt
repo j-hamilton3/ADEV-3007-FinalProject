@@ -17,6 +17,8 @@ private val retrofit = Retrofit.Builder()
 interface GameApiService {
     @GET("games")
     suspend fun getGames(): List<Game>
+
+    //TODO Define second GET function, include game id in query.
 }
 
 object GameAPI {

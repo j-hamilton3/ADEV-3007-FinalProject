@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1076855149485",
+    "project_id": "free2play-49b80",
+    "storage_bucket": "free2play-49b80.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076855149485:android:0d46e584b5ce8d5fffc724",
+        "android_client_info": {
+          "package_name": "com.example.finalproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAggtBv2ys2R2AvHNO6R6eT9G2EQIV7bJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

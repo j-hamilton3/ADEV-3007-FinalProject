@@ -30,7 +30,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -39,7 +38,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +50,6 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,7 +61,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,7 +70,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.finalproject.model.Game
-import com.example.finalproject.network.GameAPI
 import com.example.finalproject.ui.theme.FinalProjectTheme
 import com.example.finalproject.ui.theme.GameUiState
 import com.example.finalproject.ui.theme.GameViewModel
@@ -230,7 +225,7 @@ fun GameListEntry(game : Game, navController: NavHostController, modifier: Modif
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
             .padding(4.dp)
-            .clickable { navController.navigate("gameDetails/${game.id}") }, // This will eventually route to the specific games ID.
+            .clickable { navController.navigate("gameDetails/${game.id}") }, // This routes to the specific game.
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -311,7 +306,7 @@ fun Categories(gameUiState: GameUiState) {
             // Extract the genre from each game and remove duplicates.
             gameUiState.games.map { it.genre.trim() }.distinct().sorted()
         }
-        else -> listOf<String>() // Return an empty list if not in Success state.
+        else -> listOf() // Return an empty list if not in Success state.
     }
 
     LazyColumn(
