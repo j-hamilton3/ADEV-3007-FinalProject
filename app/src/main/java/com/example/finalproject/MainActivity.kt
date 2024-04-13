@@ -572,6 +572,8 @@ fun SignInScreen(signInViewModel: SignInViewModel) {
         ) {
             Text(text = "Register")
         }
+
+        Text(text = uiState.uiMessage ?: "")
     }
 }
 

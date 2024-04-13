@@ -6,6 +6,13 @@ import com.google.firebase.auth.auth
 class FirebaseAuthService {
     fun createAccount(email: String, password: String, onResult: (Throwable?) -> Unit) {
         Firebase.auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener{ onResult(it.exception) }
+            .addOnCompleteListener{
+                task ->
+                if(task.isSuccessful) {
+                    onResult(null)
+                } else {
+                    onResult(Exception(task.exception?.message))
+                }
+            }
     }
 }

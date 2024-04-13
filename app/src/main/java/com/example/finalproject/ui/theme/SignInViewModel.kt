@@ -1,7 +1,5 @@
 package com.example.finalproject.ui.theme
 
-import android.text.Spannable.Factory
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,7 +11,8 @@ import com.example.finalproject.data.AuthRepository
 
 data class SignInUiState(
     val email: String = "",
-    val password: String = ""
+    val password: String = "",
+    val uiMessage: String? = null
 )
 class SignInViewModel(private val authRepository: AuthRepository) : ViewModel() {
     var uiState = mutableStateOf(SignInUiState())
@@ -29,8 +28,16 @@ class SignInViewModel(private val authRepository: AuthRepository) : ViewModel() 
 
     fun registerUser() {
         authRepository.createAccount(uiState.value.email, uiState.value.password) {
-            task ->
-            Log.d("REGISTRATION", task?.message.toString())
+            throwable ->
+            if(throwable != null) {
+                uiState.value = uiState.value.copy(
+                    uiMessage = throwable.message ?: "There was an error registering your account."
+                )
+            } else {
+                uiState.value = uiState.value.copy(
+                    uiMessage = "Successfully registered ${uiState.value.email}"
+                )
+            }
         }
     }
 
