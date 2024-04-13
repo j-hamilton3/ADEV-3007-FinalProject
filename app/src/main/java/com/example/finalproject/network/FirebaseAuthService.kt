@@ -1,6 +1,7 @@
 package com.example.finalproject.network
 
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 
 class FirebaseAuthService {
@@ -14,5 +15,21 @@ class FirebaseAuthService {
                     onResult(Exception(task.exception?.message))
                 }
             }
+    }
+
+    fun authenticate(email: String, password: String, onResult: (Throwable?) -> Unit) {
+        Firebase.auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener{
+                task ->
+            if(task.isSuccessful) {
+                onResult(null)
+            } else {
+                onResult(Exception(task.exception?.message))
+            }
+        }
+    }
+
+    fun getCurrentUser(): FirebaseUser? {
+        return Firebase.auth.currentUser
     }
 }

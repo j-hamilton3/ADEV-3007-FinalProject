@@ -111,6 +111,7 @@ fun MyAppNavHost(
     val gameUiState = gameViewModel.gameUiState
 
     val signInViewModel: SignInViewModel = viewModel(factory = SignInViewModel.Factory)
+    signInViewModel.navigateOnSignIn = {navController.navigate("home")}
 
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile() }
@@ -571,6 +572,11 @@ fun SignInScreen(signInViewModel: SignInViewModel) {
             onClick = { signInViewModel.registerUser() }
         ) {
             Text(text = "Register")
+        }
+        Button(
+            onClick = { signInViewModel.authenticateUser() }
+        ) {
+            Text(text = "Login")
         }
 
         Text(text = uiState.uiMessage ?: "")
