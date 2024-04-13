@@ -110,6 +110,8 @@ fun MyAppNavHost(
     val gameViewModel: GameViewModel = viewModel()
     val gameUiState = gameViewModel.gameUiState
 
+    val signInViewModel: SignInViewModel = viewModel(factory = SignInViewModel.Factory)
+
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile() }
         composable("search") { Search() }
@@ -130,7 +132,7 @@ fun MyAppNavHost(
                 Text("Game not found")
             }
         }
-        composable("signInScreen") { SignInScreen(signInViewModel = SignInViewModel()) }
+        composable("signInScreen") { SignInScreen(signInViewModel = signInViewModel) }
     }
 }
 
@@ -566,7 +568,7 @@ fun SignInScreen(signInViewModel: SignInViewModel) {
             visualTransformation = PasswordVisualTransformation()
         )
         Button(
-            onClick = { /* TODO */ }
+            onClick = { signInViewModel.registerUser() }
         ) {
             Text(text = "Register")
         }
