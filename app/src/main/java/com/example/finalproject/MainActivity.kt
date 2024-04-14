@@ -80,7 +80,8 @@ import androidx.compose.material3.Button
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.example.finalproject.ui.theme.SignInViewModel
-
+import com.example.finalproject.data.AuthRepository
+import com.example.finalproject.data.GameUser
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,7 +106,7 @@ class MainActivity : ComponentActivity() {
 fun MyAppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    startDestination: String = "signInScreen"
+    startDestination: String = "profile"
 ) {
     val gameViewModel: GameViewModel = viewModel()
     val gameUiState = gameViewModel.gameUiState
@@ -114,7 +115,7 @@ fun MyAppNavHost(
     signInViewModel.navigateOnSignIn = {navController.navigate("home")}
 
     NavHost(navController = navController, startDestination = startDestination){
-        composable("profile") { Profile() }
+        composable("profile") { Profile(signInViewModel) }
         composable("search") { Search() }
         composable("home") { AllGames(navController, gameUiState) }
         composable("categories") { Categories(gameUiState) }
@@ -133,7 +134,6 @@ fun MyAppNavHost(
                 Text("Game not found")
             }
         }
-        composable("signInScreen") { SignInScreen(signInViewModel = signInViewModel) }
     }
 }
 
@@ -369,49 +369,97 @@ fun Search(modifier: Modifier = Modifier) {
 
 // Screen where users can view their profile.
 @Composable
-fun Profile() {
-    // Fake user data - we will accept this data from external sources later.
-    val fullName = "James Hamilton"
-    val email = "jhamilton3@rrc.ca"
-    val memberSince = "March 2024"
-    val favoriteGames = 2
+fun Profile(signInViewModel: SignInViewModel) {
 
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .width(IntrinsicSize.Max),
-    ) {
+    // Firebase Auth data.
+    val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
+    val uiState by signInViewModel.uiState
+
+    val email = currentUser?.email.toString()
+    val favoriteGames = 4 // Placeholder for now...
+
+    if (currentUser != null) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .width(IntrinsicSize.Max),
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = "Profile Icon.",
+                    modifier = Modifier.size(48.dp)
+                )
+                Text(
+                    text = email,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Favorite Games: $favoriteGames",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    } else {
         Column(
             modifier = Modifier
-                .padding(24.dp),
+                .fillMaxSize()
+                .padding(horizontal = 32.dp, vertical= 32.dp),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = "Profile Icon.",
-                modifier = Modifier.size(48.dp)
+            TextField(
+                value = uiState.email,
+                onValueChange = { emailValue -> signInViewModel.updateEmailState(emailValue) },
+                label = { Text("Email") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
-            Text(
-                text = fullName,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
+            TextField(
+                value = uiState.password,
+                onValueChange = { passwordValue -> signInViewModel.updatePasswordState(passwordValue) },
+                visualTransformation = PasswordVisualTransformation(),
+                label = { Text("Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = { signInViewModel.authenticateUser() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                ) {
+                    Text(text = "Login")
+                }
+                Button(
+                    onClick = { signInViewModel.registerUser() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                ) {
+                    Text(text = "Register")
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = email,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Member Since: $memberSince",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Favorite Games: $favoriteGames",
-                style = MaterialTheme.typography.bodyLarge
+                text = uiState.uiMessage ?: "",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }
@@ -554,33 +602,5 @@ fun AllGames(navController: NavHostController, gameUiState: GameUiState) {
     }
 }
 
-@Composable
-fun SignInScreen(signInViewModel: SignInViewModel) {
-    val uiState by signInViewModel.uiState
-
-    Column() {
-        TextField(
-            value = uiState.email,
-            onValueChange = { emailValue -> signInViewModel.updateEmailState(emailValue)}
-        )
-        TextField(
-            value = uiState.password,
-            onValueChange = { passwordValue -> signInViewModel.updatePasswordState(passwordValue)},
-            visualTransformation = PasswordVisualTransformation()
-        )
-        Button(
-            onClick = { signInViewModel.registerUser() }
-        ) {
-            Text(text = "Register")
-        }
-        Button(
-            onClick = { signInViewModel.authenticateUser() }
-        ) {
-            Text(text = "Login")
-        }
-
-        Text(text = uiState.uiMessage ?: "")
-    }
-}
 
 

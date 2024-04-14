@@ -8,12 +8,14 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.finalproject.GameApplication
 import com.example.finalproject.data.AuthRepository
+import com.example.finalproject.data.GameUser
 
 
 data class SignInUiState(
     val email: String = "",
     val password: String = "",
-    val uiMessage: String? = null
+    val uiMessage: String? = null,
+    val currentUser: GameUser? = null
 )
 class SignInViewModel(private val authRepository: AuthRepository) : ViewModel() {
     var uiState = mutableStateOf(SignInUiState())
@@ -58,6 +60,8 @@ class SignInViewModel(private val authRepository: AuthRepository) : ViewModel() 
                 )
                 try {
                     authRepository.getCurrentUser()
+                    // Retrieve current user and store it
+                    uiState.value = uiState.value.copy(currentUser = authRepository.CurrentUser)
                     Log.d("LOGIN", authRepository.CurrentUser.toString())
                     navigateOnSignIn()
                 } catch(e :Exception) {
