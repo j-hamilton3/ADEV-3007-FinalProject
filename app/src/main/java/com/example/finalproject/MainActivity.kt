@@ -80,7 +80,6 @@ import androidx.compose.material3.Button
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.example.finalproject.ui.theme.SignInViewModel
-import com.example.finalproject.data.AuthRepository
 import com.example.finalproject.data.GameUser
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +118,7 @@ fun MyAppNavHost(
         composable("search") { Search() }
         composable("home") { AllGames(navController, gameUiState) }
         composable("categories") { Categories(gameUiState) }
-        composable("favorites") { Favorites(navController, gameUiState) }
+        composable("favorites") { Favorites(navController, gameUiState, signInViewModel) }
         composable("gameDetails/{gameId}") { backStackEntry ->
             // Retrieve the gameId from the backStackEntry arguments
             val gameId = backStackEntry.arguments?.getString("gameId")?.toIntOrNull()
@@ -276,30 +275,39 @@ fun GameListEntry(game : Game, navController: NavHostController, modifier: Modif
 
 // Screen where users can view favorite games.
 @Composable
-fun Favorites(navController: NavHostController, gameUiState: GameUiState) {
-    when (gameUiState) {
-        is GameUiState.Success -> {
+fun Favorites(navController: NavHostController, gameUiState: GameUiState, signInViewModel: SignInViewModel) {
 
-            val gamesToShow = gameUiState.games.takeLast(4) // Using as placeholder until favorite functionality.
+    val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                items(gamesToShow) { game ->
-                    GameListEntry(game = game, navController = navController)
+    if (currentUser != null) {
+        when (gameUiState) {
+            is GameUiState.Success -> {
+
+                val gamesToShow = gameUiState.games.takeLast(4) // Using as placeholder until favorite functionality.
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    items(gamesToShow) { game ->
+                        GameListEntry(game = game, navController = navController)
+                    }
+                }
+            }
+            GameUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            GameUiState.Error -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Failed to load favorite games.")
                 }
             }
         }
-        GameUiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-        GameUiState.Error -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Failed to load favorite games.")
-            }
+    } else {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Please sign in to view Favorites.")
         }
     }
 }

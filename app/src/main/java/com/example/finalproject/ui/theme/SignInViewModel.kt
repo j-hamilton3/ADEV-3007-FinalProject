@@ -40,7 +40,7 @@ class SignInViewModel(private val authRepository: AuthRepository) : ViewModel() 
                 )
             } else {
                 uiState.value = uiState.value.copy(
-                    uiMessage = "Successfully registered ${uiState.value.email}"
+                    uiMessage = "Successfully registered ${uiState.value.email}, please log in."
                 )
                 //navigateOnSignIn() // Get rid of this?
             }
