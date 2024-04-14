@@ -378,6 +378,8 @@ fun Profile(signInViewModel: SignInViewModel) {
     val email = currentUser?.email.toString()
     val favoriteGames = 4 // Placeholder for now...
 
+    val isEmailAndPasswordNotEmpty = uiState.email.isNotEmpty() && uiState.password.isNotEmpty()
+
     if (currentUser != null) {
         Box(
             contentAlignment = Alignment.Center,
@@ -442,7 +444,8 @@ fun Profile(signInViewModel: SignInViewModel) {
                     onClick = { signInViewModel.authenticateUser() },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = 8.dp)
+                        .padding(start = 8.dp),
+                    enabled = isEmailAndPasswordNotEmpty
                 ) {
                     Text(text = "Login")
                 }
@@ -450,7 +453,8 @@ fun Profile(signInViewModel: SignInViewModel) {
                     onClick = { signInViewModel.registerUser() },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(end = 8.dp)
+                        .padding(end = 8.dp),
+                    enabled = isEmailAndPasswordNotEmpty
                 ) {
                     Text(text = "Register")
                 }
