@@ -82,6 +82,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.finalproject.data.GameDatabase
 import com.example.finalproject.data.GameStorageRepository
 import com.example.finalproject.ui.theme.SignInViewModel
@@ -91,6 +93,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.Locale.Category
 
 
 class MainActivity : ComponentActivity() {
@@ -132,7 +135,14 @@ fun MyAppNavHost(
         composable("profile") { Profile(signInViewModel, repository) }
         composable("search") { Search() }
         composable("home") { AllGames(navController, gameUiState, repository, signInViewModel) }
-        composable("categories") { Categories(gameUiState) }
+        composable("categories") { Categories(navController = navController, gameUiState) }
+        composable(
+            route = "categoryResults/{category}",
+            arguments = listOf(navArgument("category") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val category = backStackEntry.arguments?.getString("category") ?: ""
+            CategoryResults(category, navController, gameUiState, repository, signInViewModel)
+        }
         composable("favorites") { Favorites(navController, gameUiState, signInViewModel, repository) }
         composable("gameDetails/{gameId}") { backStackEntry ->
             // Retrieve the gameId from the backStackEntry arguments
@@ -165,6 +175,7 @@ fun AppScaffold(navController: NavHostController, gameDatabase: GameDatabase) {
             "search" -> "🎮Free2Play - Search"
             "categories" -> "🎮Free2Play - Categories"
             "favorites" -> "🎮Free2Play - Favorites♥"
+            "categoryResults/{category}" -> "🎮Free2Play - ${navController.currentBackStackEntry?.arguments?.getString("category") ?: "Category"}" //This will display the category being viewed.
             else -> "🎮Free2Play"
         }
     }
@@ -382,7 +393,7 @@ fun Favorites(
 
 // Screen where users can view game categories.
 @Composable
-fun Categories(gameUiState: GameUiState) {
+fun Categories(navController: NavHostController, gameUiState: GameUiState) {
 
     val categories = when (gameUiState) {
         is GameUiState.Success -> {
@@ -398,23 +409,51 @@ fun Categories(gameUiState: GameUiState) {
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         items(categories) { category ->
-            CategoryItem(category = category)
+            CategoryItem(category = category, navController = navController) // Pass navController to CategoryItem
         }
     }
 }
 
 // A category Item to be used in the Categories screen.
 @Composable
-fun CategoryItem(category: String) {
+fun CategoryItem(category: String, navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickable { navController.navigate("categoryResults/$category")},
         contentAlignment = Alignment.Center
     ) {
         Text(text = category, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+fun CategoryResults(category: String, navController: NavHostController, gameUiState: GameUiState, repository: GameStorageRepository, signInViewModel: SignInViewModel) {
+    when (gameUiState) {
+        is GameUiState.Success -> {
+            val filteredGames = gameUiState.games.filter{it.genre == category}
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                items(filteredGames) { game ->
+                    GameListEntry(game = game, navController = navController, repository = repository, signInViewModel = signInViewModel)
+                }
+            }
+        }
+        GameUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        GameUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Failed to load games.")
+            }
+        }
     }
 }
 
