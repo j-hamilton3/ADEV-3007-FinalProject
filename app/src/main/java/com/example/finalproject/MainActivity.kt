@@ -82,7 +82,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import com.example.finalproject.data.GameDao
 import com.example.finalproject.data.GameDatabase
 import com.example.finalproject.data.GameStorageRepository
 import com.example.finalproject.ui.theme.SignInViewModel
@@ -131,7 +130,7 @@ fun MyAppNavHost(
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile(signInViewModel) }
         composable("search") { Search() }
-        composable("home") { AllGames(navController, gameUiState, repository) }
+        composable("home") { AllGames(navController, gameUiState, repository, signInViewModel) }
         composable("categories") { Categories(gameUiState) }
         composable("favorites") { Favorites(navController, gameUiState, signInViewModel, repository) }
         composable("gameDetails/{gameId}") { backStackEntry ->
@@ -244,11 +243,14 @@ fun GameListEntry(
     game: Game,
     navController: NavHostController,
     repository: GameStorageRepository,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    signInViewModel: SignInViewModel
 ) {
     var isFavorite by remember { mutableStateOf(false) }
 
     val favoriteGames = remember { mutableStateListOf<Game>() }
+
+    val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -304,24 +306,26 @@ fun GameListEntry(
                 Text(
                     text = game.releaseDate
                 )
-                IconButton(
-                    onClick = {
-                        isFavorite = !isFavorite
-                        scope.launch {
-                            if (isFavorite) {
-                                repository.insertGame(game)
-                            } else {
-                                repository.deleteGame(game)
+                if (currentUser != null) {
+                    IconButton(
+                        onClick = {
+                            isFavorite = !isFavorite
+                            scope.launch {
+                                if (isFavorite) {
+                                    repository.insertGame(game)
+                                } else {
+                                    repository.deleteGame(game)
+                                }
                             }
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = if (isFavorite) Color.Red else Color.Black,
-                    )
+                        },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (isFavorite) Color.Red else Color.Black,
+                        )
+                    }
                 }
             }
         }
@@ -353,7 +357,7 @@ fun Favorites(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     items(gamesToShow) { game ->
-                        GameListEntry(game = game, navController = navController, repository = repository)
+                        GameListEntry(game = game, navController = navController, repository = repository, signInViewModel = signInViewModel)
                     }
                 }
             }
@@ -652,7 +656,7 @@ fun GameDetails(game: Game) {
 
 // Home Screen, this is where all games are displayed.
 @Composable
-fun AllGames(navController: NavHostController, gameUiState: GameUiState, repository: GameStorageRepository) {
+fun AllGames(navController: NavHostController, gameUiState: GameUiState, repository: GameStorageRepository, signInViewModel: SignInViewModel) {
     when (gameUiState) {
         is GameUiState.Success -> {
             LazyColumn(
@@ -660,7 +664,7 @@ fun AllGames(navController: NavHostController, gameUiState: GameUiState, reposit
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 items(gameUiState.games) { game ->
-                    GameListEntry(game = game, navController = navController, repository = repository)
+                    GameListEntry(game = game, navController = navController, repository = repository, signInViewModel = signInViewModel)
                 }
             }
         }
@@ -676,6 +680,8 @@ fun AllGames(navController: NavHostController, gameUiState: GameUiState, reposit
         }
     }
 }
+
+
 
 
 
