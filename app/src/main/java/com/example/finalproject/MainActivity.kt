@@ -128,12 +128,6 @@ fun MyAppNavHost(
     val signInViewModel: SignInViewModel = viewModel(factory = SignInViewModel.Factory)
     signInViewModel.navigateOnSignIn = {navController.navigate("home")}
 
-
-
-    // Local storage repository.
-
-
-
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile(signInViewModel) }
         composable("search") { Search() }
@@ -253,6 +247,17 @@ fun GameListEntry(
     modifier: Modifier = Modifier
 ) {
     var isFavorite by remember { mutableStateOf(false) }
+
+    val favoriteGames = remember { mutableStateListOf<Game>() }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            favoriteGames.addAll(repository.getAllGames())
+        }
+    }
+
+    // Check if the game object passed in is in the favoriteGames list.
+    isFavorite = favoriteGames.contains(game)
 
     val scope = rememberCoroutineScope()
 
