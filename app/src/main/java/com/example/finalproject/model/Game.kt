@@ -1,22 +1,26 @@
 package com.example.finalproject.model
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
+@Entity(tableName = "games")
 @Serializable
 data class Game(
-    val id: Int,
-    val title: String,
-    val thumbnail: String,
+    @PrimaryKey
+    var id: Int,
+    var title: String,
+    var thumbnail: String,
     @SerialName("short_description")
-    val shortDescription: String,
+    var shortDescription: String,
     @SerialName("game_url")
-    val gameUrl: String,
-    val genre: String,
-    val platform: String,
-    val publisher: String,
-    val developer: String,
+    var gameUrl: String,
+    var genre: String,
+    var platform: String,
+    var publisher: String,
+    var developer: String,
     @SerialName("release_date")
-    val releaseDate: String,
+    var releaseDate: String,
     @SerialName("freetogame_profile_url")
-    val freetogameProfileUrl: String
+    var freetogameProfileUrl: String
 )

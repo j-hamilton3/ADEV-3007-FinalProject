@@ -76,11 +76,23 @@ import com.example.finalproject.ui.theme.GameViewModel
 import coil.compose.rememberImagePainter
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.example.finalproject.data.GameDao
+import com.example.finalproject.data.GameDatabase
+import com.example.finalproject.data.GameStorageRepository
 import com.example.finalproject.ui.theme.SignInViewModel
 import com.example.finalproject.data.GameUser
+import com.example.finalproject.data.LocalGameStorageRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,8 +103,10 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+                    val gameDatabase = GameDatabase.getDatabase(context = this)
                     AppScaffold(
-                        navController = navController
+                        navController = navController,
+                        gameDatabase = gameDatabase
                     )
                 }
             }
@@ -105,6 +119,7 @@ class MainActivity : ComponentActivity() {
 fun MyAppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
+    repository: GameStorageRepository,
     startDestination: String = "profile"
 ) {
     val gameViewModel: GameViewModel = viewModel()
@@ -113,12 +128,18 @@ fun MyAppNavHost(
     val signInViewModel: SignInViewModel = viewModel(factory = SignInViewModel.Factory)
     signInViewModel.navigateOnSignIn = {navController.navigate("home")}
 
+
+
+    // Local storage repository.
+
+
+
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile(signInViewModel) }
         composable("search") { Search() }
-        composable("home") { AllGames(navController, gameUiState) }
+        composable("home") { AllGames(navController, gameUiState, repository) }
         composable("categories") { Categories(gameUiState) }
-        composable("favorites") { Favorites(navController, gameUiState, signInViewModel) }
+        composable("favorites") { Favorites(navController, gameUiState, signInViewModel, repository) }
         composable("gameDetails/{gameId}") { backStackEntry ->
             // Retrieve the gameId from the backStackEntry arguments
             val gameId = backStackEntry.arguments?.getString("gameId")?.toIntOrNull()
@@ -138,7 +159,7 @@ fun MyAppNavHost(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppScaffold(navController: NavHostController) {
+fun AppScaffold(navController: NavHostController, gameDatabase: GameDatabase) {
     val currentDestination = navController.currentBackStackEntryAsState()
     val currentRoute = currentDestination.value?.destination?.route ?: "home"
     var title by remember { mutableStateOf("🎮Free2Play") }
@@ -217,21 +238,31 @@ fun AppScaffold(navController: NavHostController) {
         ){
             MyAppNavHost(
                 modifier = Modifier.padding(innerPadding),
-                navController = navController
+                navController = navController,
+                repository = LocalGameStorageRepository(gameDatabase.gameDao())
             )
         }
     }
 }
 
 @Composable
-fun GameListEntry(game : Game, navController: NavHostController, modifier: Modifier = Modifier) {
+fun GameListEntry(
+    game: Game,
+    navController: NavHostController,
+    repository: GameStorageRepository,
+    modifier: Modifier = Modifier
+) {
+    var isFavorite by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
             .padding(4.dp)
-            .clickable { navController.navigate("gameDetails/${game.id}") }, // This routes to the specific game.
+            .clickable { navController.navigate("gameDetails/${game.id}") },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -268,6 +299,25 @@ fun GameListEntry(game : Game, navController: NavHostController, modifier: Modif
                 Text(
                     text = game.releaseDate
                 )
+                IconButton(
+                    onClick = {
+                        isFavorite = !isFavorite
+                        scope.launch {
+                            if (isFavorite) {
+                                repository.insertGame(game)
+                            } else {
+                                repository.deleteGame(game)
+                            }
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) Color.Red else Color.Black,
+                    )
+                }
             }
         }
     }
@@ -275,22 +325,30 @@ fun GameListEntry(game : Game, navController: NavHostController, modifier: Modif
 
 // Screen where users can view favorite games.
 @Composable
-fun Favorites(navController: NavHostController, gameUiState: GameUiState, signInViewModel: SignInViewModel) {
-
+fun Favorites(
+    navController: NavHostController,
+    gameUiState: GameUiState,
+    signInViewModel: SignInViewModel,
+    repository: GameStorageRepository
+) {
     val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
+    val gamesToShow = remember { mutableStateListOf<Game>() }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            gamesToShow.addAll(repository.getAllGames())
+        }
+    }
 
     if (currentUser != null) {
         when (gameUiState) {
             is GameUiState.Success -> {
-
-                val gamesToShow = gameUiState.games.takeLast(4) // Using as placeholder until favorite functionality.
-
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     items(gamesToShow) { game ->
-                        GameListEntry(game = game, navController = navController)
+                        GameListEntry(game = game, navController = navController, repository = repository)
                     }
                 }
             }
@@ -422,7 +480,7 @@ fun Profile(signInViewModel: SignInViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical= 32.dp),
+                .padding(horizontal = 32.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -589,7 +647,7 @@ fun GameDetails(game: Game) {
 
 // Home Screen, this is where all games are displayed.
 @Composable
-fun AllGames(navController: NavHostController, gameUiState: GameUiState) {
+fun AllGames(navController: NavHostController, gameUiState: GameUiState, repository: GameStorageRepository) {
     when (gameUiState) {
         is GameUiState.Success -> {
             LazyColumn(
@@ -597,7 +655,7 @@ fun AllGames(navController: NavHostController, gameUiState: GameUiState) {
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 items(gameUiState.games) { game ->
-                    GameListEntry(game = game, navController = navController)
+                    GameListEntry(game = game, navController = navController, repository = repository)
                 }
             }
         }
