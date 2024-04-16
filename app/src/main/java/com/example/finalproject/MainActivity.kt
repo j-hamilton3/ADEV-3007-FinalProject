@@ -89,6 +89,7 @@ import com.example.finalproject.data.GameUser
 import com.example.finalproject.data.LocalGameStorageRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 
@@ -128,7 +129,7 @@ fun MyAppNavHost(
     signInViewModel.navigateOnSignIn = {navController.navigate("home")}
 
     NavHost(navController = navController, startDestination = startDestination){
-        composable("profile") { Profile(signInViewModel) }
+        composable("profile") { Profile(signInViewModel, repository) }
         composable("search") { Search() }
         composable("home") { AllGames(navController, gameUiState, repository, signInViewModel) }
         composable("categories") { Categories(gameUiState) }
@@ -444,14 +445,19 @@ fun Search(modifier: Modifier = Modifier) {
 
 // Screen where users can view their profile.
 @Composable
-fun Profile(signInViewModel: SignInViewModel) {
+fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository) {
 
     // Firebase Auth data.
     val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
     val uiState by signInViewModel.uiState
 
     val email = currentUser?.email.toString()
-    val favoriteGames = 4 // Placeholder for now...
+
+    val favoriteGames = runBlocking {
+        withContext(Dispatchers.IO) {
+            repository.getAllGames().size
+        }
+    } // Returns an int of amount of favorite games.
 
     val isEmailAndPasswordNotEmpty = uiState.email.isNotEmpty() && uiState.password.isNotEmpty()
 
