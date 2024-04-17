@@ -7,6 +7,7 @@ interface GameStorageRepository {
     suspend fun insertGame(game: Game)
     suspend fun updateGame(game: Game)
     suspend fun deleteGame(game:Game)
+
 }
 
 class LocalGameStorageRepository(private val gameDao: GameDao): GameStorageRepository {

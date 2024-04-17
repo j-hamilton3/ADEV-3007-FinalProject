@@ -256,28 +256,25 @@ fun GameListEntry(
     game: Game,
     navController: NavHostController,
     repository: GameStorageRepository,
-    modifier: Modifier = Modifier,
     signInViewModel: SignInViewModel
 ) {
-    var isFavorite by remember { mutableStateOf(false) }
-
-    val favoriteGames = remember { mutableStateListOf<Game>() }
-
     val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            favoriteGames.addAll(repository.getAllGames())
-        }
-    }
+    // Initialize isFavorite as a remembered mutable state
+    var isFavorite by remember { mutableStateOf(false) }
 
-    // Check if the game object passed in is in the favoriteGames list.
-    isFavorite = favoriteGames.contains(game)
+    // Update isFavorite when the composable recomposes
+    LaunchedEffect(Unit) {
+        val favoriteGames = withContext(Dispatchers.IO) {
+            repository.getAllGames().filter { it.userId == currentUser?.id }
+        }
+        isFavorite = favoriteGames.any { it.id == game.id }
+    }
 
     val scope = rememberCoroutineScope()
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
@@ -322,14 +319,15 @@ fun GameListEntry(
                 if (currentUser != null) {
                     IconButton(
                         onClick = {
-                            isFavorite = !isFavorite
                             scope.launch {
                                 if (isFavorite) {
+                                    repository.deleteGame(game)
+                                } else {
                                     game.userId = currentUser.id
                                     repository.insertGame(game)
-                                } else {
-                                    repository.deleteGame(game)
                                 }
+                                // Update isFavorite after favorite status changes
+                                isFavorite = !isFavorite
                             }
                         },
                         modifier = Modifier.align(Alignment.End)
@@ -427,7 +425,7 @@ fun CategoryItem(category: String, navController: NavHostController) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
             .padding(16.dp)
-            .clickable { navController.navigate("categoryResults/$category")},
+            .clickable { navController.navigate("categoryResults/$category") },
         contentAlignment = Alignment.Center
     ) {
         Text(text = category, style = MaterialTheme.typography.bodyMedium)
