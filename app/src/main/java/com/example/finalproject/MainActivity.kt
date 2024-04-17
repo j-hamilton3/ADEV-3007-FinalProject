@@ -324,6 +324,7 @@ fun GameListEntry(
                             isFavorite = !isFavorite
                             scope.launch {
                                 if (isFavorite) {
+                                    game.userId = currentUser.id
                                     repository.insertGame(game)
                                 } else {
                                     repository.deleteGame(game)
@@ -696,7 +697,7 @@ fun GameDetails(game: Game) {
                     modifier = Modifier
                         .padding(bottom = 8.dp)
                         .clickable {
-                            // Open URL in the browser
+                            // Open URL in the browser.
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                             context.startActivity(intent)
                         },
