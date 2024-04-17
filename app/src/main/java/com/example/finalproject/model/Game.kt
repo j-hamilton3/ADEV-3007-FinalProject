@@ -1,13 +1,17 @@
 package com.example.finalproject.model
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
-@Entity(tableName = "games")
+@Entity(
+    tableName = "games",
+)
 @Serializable
 data class Game(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    var favId: Int = 0, // Auto Inc PK, to allow multiple users to favorite the same game.
     var id: Int,
     var title: String,
     var thumbnail: String,
@@ -23,5 +27,5 @@ data class Game(
     var releaseDate: String,
     @SerialName("freetogame_profile_url")
     var freetogameProfileUrl: String,
-    var userId: String? = null // New field
+    var userId: String? = null
 )

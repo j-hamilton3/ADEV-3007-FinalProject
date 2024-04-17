@@ -78,6 +78,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -365,11 +366,13 @@ fun Favorites(
     if (currentUser != null) {
         when (gameUiState) {
             is GameUiState.Success -> {
+                // Filter gamesToShow to only include games where userId matches currentUser.id
+                val userGamesToShow = gamesToShow.filter { it.userId == currentUser.id }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    items(gamesToShow) { game ->
+                    items(userGamesToShow) { game ->
                         GameListEntry(game = game, navController = navController, repository = repository, signInViewModel = signInViewModel)
                     }
                 }
@@ -545,11 +548,17 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository)
 
     val email = currentUser?.email.toString()
 
-    val favoriteGames = runBlocking {
-        withContext(Dispatchers.IO) {
-            repository.getAllGames().size
+    val favoriteGames = remember {
+        mutableIntStateOf(0)
+    }
+
+    LaunchedEffect(Unit) {
+        val games = withContext(Dispatchers.IO) {
+            repository.getAllGames().filter { it.userId == currentUser?.id }
         }
-    } // Returns an int of amount of favorite games.
+        favoriteGames.value = games.size
+    }
+
 
     val isEmailAndPasswordNotEmpty = uiState.email.isNotEmpty() && uiState.password.isNotEmpty()
 
@@ -578,7 +587,7 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Favorite Games: $favoriteGames",
+                    text = "Favorite Games: ${favoriteGames.value}",
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
