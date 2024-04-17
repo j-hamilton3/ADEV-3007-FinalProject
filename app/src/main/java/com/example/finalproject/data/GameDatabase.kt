@@ -9,7 +9,7 @@ import kotlinx.coroutines.InternalCoroutinesApi
 
 @Database(
     entities = [Game::class],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class GameDatabase: RoomDatabase() {

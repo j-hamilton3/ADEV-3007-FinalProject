@@ -22,5 +22,6 @@ data class Game(
     @SerialName("release_date")
     var releaseDate: String,
     @SerialName("freetogame_profile_url")
-    var freetogameProfileUrl: String
+    var freetogameProfileUrl: String,
+    var userId: String? = null // New field
 )

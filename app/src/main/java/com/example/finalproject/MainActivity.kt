@@ -133,7 +133,7 @@ fun MyAppNavHost(
 
     NavHost(navController = navController, startDestination = startDestination){
         composable("profile") { Profile(signInViewModel, repository) }
-        composable("search") { Search() }
+        composable("search") { Search(gameUiState = gameUiState, navController = navController, repository = repository, signInViewModel = signInViewModel) }
         composable("home") { AllGames(navController, gameUiState, repository, signInViewModel) }
         composable("categories") { Categories(navController = navController, gameUiState) }
         composable(
@@ -459,25 +459,77 @@ fun CategoryResults(category: String, navController: NavHostController, gameUiSt
 
 // Screen where users can search for games.
 @Composable
-fun Search(modifier: Modifier = Modifier) {
+fun Search(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    gameUiState: GameUiState,
+    repository: GameStorageRepository,
+    signInViewModel: SignInViewModel
+) {
     var text by remember { mutableStateOf("") }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.Center
-    ){
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            label = { Text("Search by Game Name:") }
-        )
-        IconButton(onClick = { /* TODO: Add Search function. */ }) {
-            Icon(
-                imageVector = Icons.Filled.Search,
-                contentDescription = "Search button."
+    // Filtered list of games based on the search text.
+    val filteredGames = remember(gameUiState, text) {
+        when (gameUiState) {
+            is GameUiState.Success -> {
+                gameUiState.games.filter { it.title.contains(text, ignoreCase = true) }
+            }
+            else -> emptyList() // Return empty list if not in Success state.
+        }
+    }
+
+    // Function to update the search text.
+    val updateSearchText: (String) -> Unit = { searchText ->
+        text = searchText
+    }
+
+    // Display the filtered games or appropriate message.
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            TextField(
+                value = text,
+                onValueChange = updateSearchText,
+                label = { Text("Search by Game Name:") }
             )
+        }
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            items(
+                items = when (gameUiState) {
+                    is GameUiState.Success -> {
+                        if (text.isBlank()) gameUiState.games else filteredGames
+                    }
+                    else -> emptyList()
+                }
+            ) { game ->
+                    GameListEntry(
+                        game = game,
+                        navController = navController,
+                        repository = repository,
+                        signInViewModel = signInViewModel
+                    )
+            }
+
+            if (text.isNotBlank() && filteredGames.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No matching games found.")
+                    }
+                }
+            }
         }
     }
 }
