@@ -321,7 +321,7 @@ fun GameListEntry(
                         onClick = {
                             scope.launch {
                                 if (isFavorite) {
-                                    repository.deleteGame(game)
+                                    repository.deleteTitle(game.title, currentUser.id)
                                 } else {
                                     game.userId = currentUser.id
                                     repository.insertGame(game)
@@ -514,12 +514,12 @@ fun Search(
                     else -> emptyList()
                 }
             ) { game ->
-                    GameListEntry(
-                        game = game,
-                        navController = navController,
-                        repository = repository,
-                        signInViewModel = signInViewModel
-                    )
+                GameListEntry(
+                    game = game,
+                    navController = navController,
+                    repository = repository,
+                    signInViewModel = signInViewModel
+                )
             }
 
             if (text.isNotBlank() && filteredGames.isEmpty()) {
@@ -785,8 +785,3 @@ fun AllGames(navController: NavHostController, gameUiState: GameUiState, reposit
         }
     }
 }
-
-
-
-
-

@@ -21,4 +21,7 @@ interface GameDao {
 
     @Delete
     suspend fun delete(game: Game)
+
+    @Query("DELETE FROM games WHERE title = :title AND userId = :userId")
+    suspend fun deleteTitle(title: String, userId: String?)
 }

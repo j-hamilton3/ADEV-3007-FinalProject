@@ -8,6 +8,7 @@ interface GameStorageRepository {
     suspend fun updateGame(game: Game)
     suspend fun deleteGame(game:Game)
 
+    suspend fun deleteTitle(title: String, userId : String?)
 }
 
 class LocalGameStorageRepository(private val gameDao: GameDao): GameStorageRepository {
@@ -25,6 +26,10 @@ class LocalGameStorageRepository(private val gameDao: GameDao): GameStorageRepos
 
     override suspend fun deleteGame(game: Game) {
         gameDao.delete(game)
+    }
+
+    override suspend fun deleteTitle(title: String, userId: String?) {
+        gameDao.deleteTitle(title, userId)
     }
 
 }
