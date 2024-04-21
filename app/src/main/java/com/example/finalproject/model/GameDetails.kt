@@ -32,6 +32,6 @@ data class GameDetails(
     var developer: String,
     @SerialName("release_date") var releaseDate: String,
     @SerialName("freetogame_profile_url") var freetogameProfileUrl: String,
-    @SerialName("minimum_system_requirements") var minimumSystemRequirements: SystemRequirements,
+    @SerialName("minimum_system_requirements") var minimumSystemRequirements: SystemRequirements? = null,
     var screenshots: List<Screenshot>
 )

@@ -1,5 +1,6 @@
 package com.example.finalproject
 
+import GameDetailsViewModelFactory
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -92,6 +93,9 @@ import com.example.finalproject.data.GameStorageRepository
 import com.example.finalproject.ui.theme.SignInViewModel
 import com.example.finalproject.data.GameUser
 import com.example.finalproject.data.LocalGameStorageRepository
+import com.example.finalproject.model.GameDetails
+import com.example.finalproject.network.GameAPI
+import com.example.finalproject.ui.theme.GameDetailsViewModel
 import com.example.finalproject.ui.theme.PreferencesViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -154,15 +158,9 @@ fun MyAppNavHost(
         }
         composable("favorites") { Favorites(navController, gameUiState, signInViewModel, repository) }
         composable("gameDetails/{gameId}") { backStackEntry ->
-            // Retrieve the gameId from the backStackEntry arguments.
             val gameId = backStackEntry.arguments?.getString("gameId")?.toIntOrNull()
-
-            val game = if (gameUiState is GameUiState.Success) {
-                gameUiState.games.find { it.id == gameId }
-            } else null
-
-            if (game != null) {
-                GameDetails(game = game)
+            if (gameId != null) {
+                GameDetails(gameId)
             } else {
                 Text("Game not found")
             }
@@ -674,10 +672,33 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
     }
 }
 
+@Composable
+fun GameDetails(gameId: Int) {
+
+    val gameDetailsViewModel: GameDetailsViewModel = viewModel(
+        factory = GameDetailsViewModelFactory(GameAPI.retrofitService)
+    )
+
+    LaunchedEffect(key1 = gameId) {
+        gameDetailsViewModel.fetchGameDetails(gameId)
+    }
+
+    val gameDetailsState = gameDetailsViewModel.gameDetails.collectAsState().value
+
+    if (gameDetailsState != null) {
+        DisplayGameDetails(gameDetailsState)
+    } else {
+        // Loading animation?
+    }
+}
+
 // Screen where users can view a specific games' details.
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun GameDetails(game: Game) {
+fun DisplayGameDetails(game: GameDetails) {
+
+    val context = LocalContext.current // Used for clickable URL functionality.
+
     // Placeholder game details.
     val title = game.title
     val releaseDate = game.releaseDate
@@ -689,13 +710,9 @@ fun GameDetails(game: Game) {
     val description = game.shortDescription
     val url = game.freetogameProfileUrl
 
-    val context = LocalContext.current // Used for clickable URL functionality.
 
-    val screenshots = listOf( // *** This will have to change, I am needing to query a specific Game, to grab these details?
-        R.drawable.call_of_duty_warzone_1,
-        R.drawable.call_of_duty_warzone_2,
-        R.drawable.call_of_duty_warzone_3
-    )
+
+    val screenshots = game.screenshots
     // To set up Pager count.
     val pagerState = rememberPagerState(
         pageCount = { screenshots.size}
@@ -750,8 +767,10 @@ fun GameDetails(game: Game) {
                         .height(190.dp)
                         .fillMaxWidth()
                 ) { page ->
+                    // Get the current screenshot URL from the screenshots list
+                    val screenshot = screenshots[page].image
                     Image(
-                        painter = painterResource(id = screenshots[page]),
+                        painter = rememberImagePainter(screenshot),
                         contentDescription = "$title screenshot - $page",
                         modifier = Modifier
                             .fillMaxWidth()
