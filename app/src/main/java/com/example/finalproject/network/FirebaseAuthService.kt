@@ -29,6 +29,10 @@ class FirebaseAuthService {
         }
     }
 
+    fun logout() {
+        Firebase.auth.signOut()
+    }
+
     fun getCurrentUser(): FirebaseUser? {
         return Firebase.auth.currentUser
     }

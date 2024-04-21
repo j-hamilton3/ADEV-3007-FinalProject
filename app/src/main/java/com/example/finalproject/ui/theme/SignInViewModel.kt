@@ -15,7 +15,7 @@ data class SignInUiState(
     val email: String = "",
     val password: String = "",
     val uiMessage: String? = null,
-    val currentUser: GameUser? = null
+    var currentUser: GameUser? = null
 )
 class SignInViewModel(private val authRepository: AuthRepository) : ViewModel() {
     var uiState = mutableStateOf(SignInUiState())
@@ -71,6 +71,17 @@ class SignInViewModel(private val authRepository: AuthRepository) : ViewModel() 
                 }
             }
         }
+    }
+
+    fun logout() {
+        authRepository.logoutUser()
+
+        uiState.value = uiState.value.copy(
+            currentUser = null,
+            uiMessage = null       // Clear any previous messages.
+        )
+
+        navigateOnSignIn()
     }
 
     companion object {

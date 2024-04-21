@@ -550,7 +550,7 @@ fun Search(
 fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository, preferencesViewModel: PreferencesViewModel) {
 
     // Firebase Auth data.
-    val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
+    var currentUser: GameUser? = signInViewModel.uiState.value.currentUser
     val uiState by signInViewModel.uiState
 
     val email = currentUser?.email.toString()
@@ -608,6 +608,11 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
                             preferencesViewModel.toggleTheme(isEnabled)
                         }
                     )
+                }
+                Button(
+                    onClick = {signInViewModel.logout();}
+                ){
+                    Text("Log Out")
                 }
             }
         }

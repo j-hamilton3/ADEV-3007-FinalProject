@@ -9,6 +9,8 @@ interface AuthRepository {
 
     fun getCurrentUser()
 
+    fun logoutUser()
+
     var CurrentUser: GameUser?
 }
 
@@ -36,4 +38,8 @@ class FirebaseAuthRepository(private val _authService: FirebaseAuthService): Aut
     }
 
     override var CurrentUser: GameUser? = null
+
+    override fun logoutUser() {
+        _authService.logout()
+    }
 }
