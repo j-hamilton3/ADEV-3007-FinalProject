@@ -154,7 +154,7 @@ fun MyAppNavHost(
         }
         composable("favorites") { Favorites(navController, gameUiState, signInViewModel, repository) }
         composable("gameDetails/{gameId}") { backStackEntry ->
-            // Retrieve the gameId from the backStackEntry arguments
+            // Retrieve the gameId from the backStackEntry arguments.
             val gameId = backStackEntry.arguments?.getString("gameId")?.toIntOrNull()
 
             val game = if (gameUiState is GameUiState.Success) {
@@ -177,7 +177,7 @@ fun AppScaffold(navController: NavHostController, gameDatabase: GameDatabase, pr
     val currentRoute = currentDestination.value?.destination?.route ?: "home"
     var title by remember { mutableStateOf("🎮Free2Play") }
 
-    // Update the title when currentRoute changes
+    // Update the title when currentRoute changes.
     LaunchedEffect(currentRoute) {
         title = when (currentRoute) {
             "profile" -> "🎮Free2Play - Profile"
@@ -335,7 +335,7 @@ fun GameListEntry(
                                     game.userId = currentUser.id
                                     repository.insertGame(game)
                                 }
-                                // Update isFavorite after favorite status changes
+                                // Update isFavorite after favorite status changes.
                                 isFavorite = !isFavorite
                             }
                         },
@@ -373,7 +373,7 @@ fun Favorites(
     if (currentUser != null) {
         when (gameUiState) {
             is GameUiState.Success -> {
-                // Filter gamesToShow to only include games where userId matches currentUser.id
+                // Filter gamesToShow to only include games where userId matches currentUser.id.
                 val userGamesToShow = gamesToShow.filter { it.userId == currentUser.id }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -425,7 +425,7 @@ fun Categories(navController: NavHostController, gameUiState: GameUiState) {
     }
 }
 
-// A category Item to be used in the Categories screen.
+// A Category Item to be used in the Categories screen.
 @Composable
 fun CategoryItem(category: String, navController: NavHostController) {
     Box(
@@ -510,7 +510,6 @@ fun Search(
                 label = { Text("Search by Game Name:") }
             )
         }
-
         LazyColumn(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
