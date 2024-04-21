@@ -1,11 +1,13 @@
 package com.example.finalproject.network
 
 import com.example.finalproject.model.Game
+import com.example.finalproject.model.GameDetails
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 private const val BASE_URL = "https://www.freetogame.com/api/"
 
@@ -18,7 +20,9 @@ interface GameApiService {
     @GET("games")
     suspend fun getGames(): List<Game>
 
-    //TODO Define second GET function, include game id in query.
+    @GET("game")
+    suspend fun getGameDetails(@Query("id") id: Int): GameDetails
+
 }
 
 object GameAPI {
