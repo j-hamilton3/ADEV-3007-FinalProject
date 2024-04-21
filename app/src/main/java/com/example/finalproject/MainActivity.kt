@@ -78,6 +78,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -90,6 +92,7 @@ import com.example.finalproject.data.GameStorageRepository
 import com.example.finalproject.ui.theme.SignInViewModel
 import com.example.finalproject.data.GameUser
 import com.example.finalproject.data.LocalGameStorageRepository
+import com.example.finalproject.ui.theme.PreferencesViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -101,7 +104,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            FinalProjectTheme {
+            val preferencesViewModel: PreferencesViewModel = viewModel()
+            val isDarkThemeEnabled by preferencesViewModel.isDarkThemeEnabled.collectAsState() // Track dark mode toggle.
+
+            FinalProjectTheme(darkTheme = isDarkThemeEnabled, dynamicColor = true) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -110,7 +116,8 @@ class MainActivity : ComponentActivity() {
                     val gameDatabase = GameDatabase.getDatabase(context = this)
                     AppScaffold(
                         navController = navController,
-                        gameDatabase = gameDatabase
+                        gameDatabase = gameDatabase,
+                        preferencesViewModel = preferencesViewModel
                     )
                 }
             }
@@ -124,7 +131,8 @@ fun MyAppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     repository: GameStorageRepository,
-    startDestination: String = "profile"
+    startDestination: String = "profile",
+    preferencesViewModel: PreferencesViewModel
 ) {
     val gameViewModel: GameViewModel = viewModel()
     val gameUiState = gameViewModel.gameUiState
@@ -133,7 +141,7 @@ fun MyAppNavHost(
     signInViewModel.navigateOnSignIn = {navController.navigate("home")}
 
     NavHost(navController = navController, startDestination = startDestination){
-        composable("profile") { Profile(signInViewModel, repository) }
+        composable("profile") { Profile(signInViewModel, repository, preferencesViewModel) }
         composable("search") { Search(gameUiState = gameUiState, navController = navController, repository = repository, signInViewModel = signInViewModel) }
         composable("home") { AllGames(navController, gameUiState, repository, signInViewModel) }
         composable("categories") { Categories(navController = navController, gameUiState) }
@@ -164,7 +172,7 @@ fun MyAppNavHost(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppScaffold(navController: NavHostController, gameDatabase: GameDatabase) {
+fun AppScaffold(navController: NavHostController, gameDatabase: GameDatabase, preferencesViewModel: PreferencesViewModel) {
     val currentDestination = navController.currentBackStackEntryAsState()
     val currentRoute = currentDestination.value?.destination?.route ?: "home"
     var title by remember { mutableStateOf("🎮Free2Play") }
@@ -245,7 +253,8 @@ fun AppScaffold(navController: NavHostController, gameDatabase: GameDatabase) {
             MyAppNavHost(
                 modifier = Modifier.padding(innerPadding),
                 navController = navController,
-                repository = LocalGameStorageRepository(gameDatabase.gameDao())
+                repository = LocalGameStorageRepository(gameDatabase.gameDao()),
+                preferencesViewModel = preferencesViewModel
             )
         }
     }
@@ -538,7 +547,7 @@ fun Search(
 
 // Screen where users can view their profile.
 @Composable
-fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository) {
+fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository, preferencesViewModel: PreferencesViewModel) {
 
     // Firebase Auth data.
     val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
@@ -588,6 +597,18 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository)
                     text = "Favorite Games: ${favoriteGames.value}",
                     style = MaterialTheme.typography.bodyLarge
                 )
+                val isDarkThemeEnabled by preferencesViewModel.isDarkThemeEnabled.collectAsState()
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Dark Mode:")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(
+                        checked = preferencesViewModel.isDarkThemeEnabled.collectAsState().value,
+                        onCheckedChange = { isEnabled ->
+                            preferencesViewModel.toggleTheme(isEnabled)
+                        }
+                    )
+                }
             }
         }
     } else {
