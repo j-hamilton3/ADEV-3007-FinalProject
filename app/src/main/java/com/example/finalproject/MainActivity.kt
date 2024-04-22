@@ -59,7 +59,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -99,9 +98,8 @@ import com.example.finalproject.ui.theme.GameDetailsViewModel
 import com.example.finalproject.ui.theme.PreferencesViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.util.Locale.Category
+
 
 
 class MainActivity : ComponentActivity() {
@@ -132,7 +130,6 @@ class MainActivity : ComponentActivity() {
 // Navigation Stuff
 @Composable
 fun MyAppNavHost(
-    modifier: Modifier = Modifier,
     navController: NavHostController,
     repository: GameStorageRepository,
     startDestination: String = "profile",
@@ -249,7 +246,6 @@ fun AppScaffold(navController: NavHostController, gameDatabase: GameDatabase, pr
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ){
             MyAppNavHost(
-                modifier = Modifier.padding(innerPadding),
                 navController = navController,
                 repository = LocalGameStorageRepository(gameDatabase.gameDao()),
                 preferencesViewModel = preferencesViewModel
@@ -267,10 +263,9 @@ fun GameListEntry(
 ) {
     val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
 
-    // Initialize isFavorite as a remembered mutable state
     var isFavorite by remember { mutableStateOf(false) }
 
-    // Update isFavorite when the composable recomposes
+    // Update isFavorite when the composable recomposes.
     LaunchedEffect(Unit) {
         val favoriteGames = withContext(Dispatchers.IO) {
             repository.getAllGames().filter { it.userId == currentUser?.id }
@@ -547,7 +542,7 @@ fun Search(
 fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository, preferencesViewModel: PreferencesViewModel) {
 
     // Firebase Auth data.
-    var currentUser: GameUser? = signInViewModel.uiState.value.currentUser
+    val currentUser: GameUser? = signInViewModel.uiState.value.currentUser
     val uiState by signInViewModel.uiState
 
     val email = currentUser?.email.toString()
@@ -560,7 +555,7 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
         val games = withContext(Dispatchers.IO) {
             repository.getAllGames().filter { it.userId == currentUser?.id }
         }
-        favoriteGames.value = games.size
+        favoriteGames.intValue = games.size
     }
 
 
@@ -591,10 +586,9 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Favorite Games: ${favoriteGames.value}",
+                    text = "Favorite Games: ${favoriteGames.intValue}",
                     style = MaterialTheme.typography.bodyLarge
                 )
-                val isDarkThemeEnabled by preferencesViewModel.isDarkThemeEnabled.collectAsState()
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Dark Mode:")
@@ -767,7 +761,7 @@ fun DisplayGameDetails(game: GameDetails) {
                         .height(190.dp)
                         .fillMaxWidth()
                 ) { page ->
-                    // Get the current screenshot URL from the screenshots list
+                    // Get the current screenshot URL from the screenshots list.
                     val screenshot = screenshots[page].image
                     Image(
                         painter = rememberImagePainter(screenshot),
