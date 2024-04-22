@@ -84,6 +84,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -281,6 +283,7 @@ fun GameListEntry(
             .padding(4.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
             .padding(4.dp)
+            .semantics { contentDescription = "${game.title} game entry." }
             .clickable { navController.navigate("gameDetails/${game.id}") },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -288,7 +291,8 @@ fun GameListEntry(
             text = game.title,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .padding(top = 8.dp, bottom = 1.dp),
+                .padding(top = 8.dp, bottom = 1.dp)
+                .semantics { contentDescription = game.title },
             fontSize = 20.sp
         )
         Row(
@@ -334,11 +338,25 @@ fun GameListEntry(
                         },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (isFavorite) Color.Red else Color.Black,
-                        )
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = if (isFavorite) Color.Red else Color.White,
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = Color.Black,
+                                    shape = CircleShape
+                                )
+                                .padding(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Toggle favorite for ${game.title}",
+                                tint = Color.Black
+                            )
+                        }
                     }
                 }
             }
@@ -390,7 +408,10 @@ fun Favorites(
         }
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Please sign in to view Favorites.")
+            Text("Please sign in to view Favorites.",
+                modifier = Modifier.semantics {
+                contentDescription = "Please sign in to view Favorites."
+            })
         }
     }
 }
@@ -618,7 +639,8 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
             TextField(
                 value = uiState.email,
                 onValueChange = { emailValue -> signInViewModel.updateEmailState(emailValue) },
-                label = { Text("Email") },
+                label = { Text("Email", modifier = Modifier.semantics {
+                    contentDescription = "Email"}) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -627,7 +649,8 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
                 value = uiState.password,
                 onValueChange = { passwordValue -> signInViewModel.updatePasswordState(passwordValue) },
                 visualTransformation = PasswordVisualTransformation(),
-                label = { Text("Password") },
+                label = { Text("Password", modifier = Modifier.semantics {
+                    contentDescription = "Password"}) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -644,7 +667,7 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
                         .padding(start = 8.dp),
                     enabled = isEmailAndPasswordNotEmpty
                 ) {
-                    Text(text = "Login")
+                    Text(text = "Login", color = Color.Black)
                 }
                 Button(
                     onClick = { signInViewModel.registerUser() },
@@ -653,7 +676,7 @@ fun Profile(signInViewModel: SignInViewModel, repository: GameStorageRepository,
                         .padding(end = 8.dp),
                     enabled = isEmailAndPasswordNotEmpty
                 ) {
-                    Text(text = "Register")
+                    Text(text = "Register", color= Color.Black)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
